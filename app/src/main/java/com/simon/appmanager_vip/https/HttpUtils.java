@@ -1,6 +1,7 @@
 package com.simon.appmanager_vip.https;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.simon.appmanager_vip.MyApplication;
@@ -140,11 +141,20 @@ public class HttpUtils {
         }
         MultipartBody body = new MultipartBody(list, "UTF-8");
         params.setRequestBody(body);
+        params.setConnectTimeout(100000);
+        params.setReadTimeout(100000);
+
+        // 使用multipart表单上传文件
+//        params.setMultipart(true);
+//        params.addBodyParameter(
+//                "file",
+//                new File(filePath),
+//                ".apk"); // 如果文件没有扩展名, 最好设置contentType参数.
 
         x.http().post(params, new org.xutils.common.Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
-                // Log.i("Simon", "上传文件：onSuccess = " + result);
+                 Log.i("Simon", "上传文件：onSuccess = " + result);
                 commonCallBack.requestSuccess(result);
             }
 
@@ -160,7 +170,7 @@ public class HttpUtils {
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-                // Log.i("Simon", "上传文件：onError = " + ex.toString());
+                 Log.i("Simon", "上传文件：onError = " + ex.toString());
                 commonCallBack.requestError(ex.getMessage());
             }
         });
