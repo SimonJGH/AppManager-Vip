@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -70,18 +71,13 @@ public class HomeActivity extends BaseActivity {
 
         mLoadingDialog = new LoadingDialog(HomeActivity.this);
 
-        initApkInfo();
     }
 
     @Event(value = {R.id.tv_apk_info, R.id.tv_app_name, R.id.tv_apk_version, R.id.tv_apk_upload, R.id.tv_apk_update})
     private void clickButton(View view) {
         switch (view.getId()) {
             case R.id.tv_apk_info:
-                if (mFileNameList.isEmpty()) {
-                    ToastUtils.getInstance().showShortToast("apk不存在，请查看文件管理！");
-                } else {
-                    chooseApk();
-                }
+                initApkInfo();
                 break;
             case R.id.tv_app_name:
                 if (TextUtils.isEmpty(apkInfo)) {
@@ -118,6 +114,11 @@ public class HomeActivity extends BaseActivity {
                 if (itemName.endsWith("apk")) {
                     mFileNameList.add(itemName);
                 }
+            }
+            if (mFileNameList.isEmpty()) {
+                ToastUtils.getInstance().showShortToast("apk不存在，请查看文件管理！");
+            } else {
+                chooseApk();
             }
         } else {
             ToastUtils.getInstance().showShortToastBottom("文件夹不存在！");
@@ -210,6 +211,14 @@ public class HomeActivity extends BaseActivity {
             public void onClick(View v) {
                 appName = "wmhk_";
                 mTv_app_name.setText("维玛荟客");
+                PopupWindowUtils.getInstance().closePop();
+            }
+        });
+        inflate.findViewById(R.id.tv_other).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                appName = "other_";
+                mTv_app_name.setText("其它App");
                 PopupWindowUtils.getInstance().closePop();
             }
         });
@@ -324,9 +333,9 @@ public class HomeActivity extends BaseActivity {
             public void requestSuccess(String result) {
                 UpdateApkInfoOutputBean updateApkInfo = new Gson().fromJson(result, UpdateApkInfoOutputBean.class);
                 apkInfo = "";
-                apkInfoUrl="";
-                appName="";
-                apkType="";
+                apkInfoUrl = "";
+                appName = "";
+                apkType = "";
                 mTv_apk_info.setText("请选择");
                 mTv_app_name.setText("请选择");
                 mTv_apk_version.setText("请选择");
