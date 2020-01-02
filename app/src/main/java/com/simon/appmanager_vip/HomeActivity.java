@@ -35,8 +35,14 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.model.Message;
+import cn.jpush.im.android.api.options.RegisterOptionalUserInfo;
+import cn.jpush.im.api.BasicCallback;
 
 @ContentView(R.layout.activity_main)
 @SuppressWarnings("all")
@@ -57,7 +63,7 @@ public class HomeActivity extends BaseActivity {
     EditText mEt_app_introduce;
 
     private String apkInfo = "";//app名称
-    private String appName = "";//app名称
+    private String apkName = "";//app名称
     private String apkType = "";//apk版本
     private boolean isExit = false;// 是否退出
     private String apkPath = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/Pictures/";
@@ -70,7 +76,7 @@ public class HomeActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         mLoadingDialog = new LoadingDialog(HomeActivity.this);
-
+        initNotification();
     }
 
     @Event(value = {R.id.tv_apk_info, R.id.tv_app_name, R.id.tv_apk_version, R.id.tv_apk_upload, R.id.tv_apk_update})
@@ -87,7 +93,7 @@ public class HomeActivity extends BaseActivity {
                 }
                 break;
             case R.id.tv_apk_version:
-                if (TextUtils.isEmpty(appName)) {
+                if (TextUtils.isEmpty(apkName)) {
                     ToastUtils.getInstance().showShortToast("请选择上传app名称！");
                 } else {
                     chooseVersion();
@@ -106,6 +112,7 @@ public class HomeActivity extends BaseActivity {
      * 初始化apk信息
      */
     private void initApkInfo() {
+        mFileNameList.clear();
         File file = new File(apkPath);
         if (file.exists()) {
             File[] fileFolders = file.listFiles();
@@ -177,7 +184,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_hq).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "hq_";
+                apkName = "hq_";
                 mTv_app_name.setText("红旗");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -185,7 +192,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_bty).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "bty_";
+                apkName = "bty_";
                 mTv_app_name.setText("奔腾苑");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -193,7 +200,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_bty_teacher).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "bty_teacher_";
+                apkName = "bty_teacher_";
                 mTv_app_name.setText("奔腾苑-讲师端");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -201,7 +208,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_bty_manager).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "bty_manager_";
+                apkName = "bty_manager_";
                 mTv_app_name.setText("奔腾苑-管理端");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -209,7 +216,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_wmhk).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "wmhk_";
+                apkName = "wmhk_";
                 mTv_app_name.setText("维玛荟客");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -217,7 +224,7 @@ public class HomeActivity extends BaseActivity {
         inflate.findViewById(R.id.tv_other).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appName = "other_";
+                apkName = "other_";
                 mTv_app_name.setText("其它App");
                 PopupWindowUtils.getInstance().closePop();
             }
@@ -302,7 +309,7 @@ public class HomeActivity extends BaseActivity {
             ToastUtils.getInstance().showShortToast("请上传apk到服务器！");
             return;
         }
-        if (TextUtils.isEmpty(appName)) {
+        if (TextUtils.isEmpty(apkName)) {
             ToastUtils.getInstance().showShortToast("请选择上传app名称！");
             return;
         }
@@ -323,7 +330,7 @@ public class HomeActivity extends BaseActivity {
 
         UpdateApkInfoInputBean inputBean = new UpdateApkInfoInputBean();
         inputBean.setFile(apkInfoUrl);
-        inputBean.setType(appName + apkType);
+        inputBean.setType(apkName + apkType);
         inputBean.setVresion(apk_version);
         inputBean.setIntroduce(app_introduce);
         Log.i("Simon", "更新apk：inputBean = " + inputBean.toString());
@@ -332,9 +339,11 @@ public class HomeActivity extends BaseActivity {
             @Override
             public void requestSuccess(String result) {
                 UpdateApkInfoOutputBean updateApkInfo = new Gson().fromJson(result, UpdateApkInfoOutputBean.class);
+                sendNotification();
+
                 apkInfo = "";
                 apkInfoUrl = "";
-                appName = "";
+                apkName = "";
                 apkType = "";
                 mTv_apk_info.setText("请选择");
                 mTv_app_name.setText("请选择");
@@ -359,6 +368,82 @@ public class HomeActivity extends BaseActivity {
             }
         });
 
+    }
+
+    /**
+     * 初始化通知
+     */
+    private void initNotification() {
+        String account = "19900501";
+        JMessageClient.register(account, "123456", new RegisterOptionalUserInfo(), new BasicCallback() {
+            @Override
+            public void gotResult(int i, String s) {
+                if (i == 898001) {// 如果账户已注册 重新获取账号进行注册
+                    initNotification();
+                } else {
+                    JMessageClient.login(account, "123456", new BasicCallback() {
+                        @Override
+                        public void gotResult(int i, String s) {
+                            Log.i("Simon", "登录：" + i + s);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * 发送通知
+     */
+    private void sendNotification() {
+        switch (apkName){
+            case "hq_":
+                apkName="红旗";
+                break;
+            case "bty_":
+                apkName="奔腾苑";
+                break;
+            case "bty_teacher_":
+                apkName="奔腾苑-讲师端";
+                break;
+            case "bty_manager_":
+                apkName="奔腾苑-管理端";
+                break;
+            case "wmhk_":
+                apkName="维玛荟客";
+                break;
+            case "other_":
+                apkName="其它App";
+                break;
+        }
+
+        switch (apkType){
+            case "publish":
+                apkType="正式版";
+                break;
+            case "test":
+                apkType="测试版";
+                break;
+            case "chat":
+                apkType="聊聊版";
+                break;
+        }
+        for (int i = 100; i <= 300; i++) {
+            String account = "20200101" + i;
+
+            Message singleTextMessage = JMessageClient.createSingleTextMessage(account, "9ee06fbb06322164a3171fa1", apkName + apkType + "已更新，请前往查看!");
+            singleTextMessage.setOnSendCompleteCallback(new BasicCallback() {
+                @Override
+                public void gotResult(int i, String s) {//898002
+                    if (i == 0) {
+                        Log.i("Simon", "发送文字成功" + account + "  " + i + s);
+                    } else {
+                        Log.i("Simon", "发送文字失败" + account + "  " + i + s);
+                    }
+                }
+            });
+            JMessageClient.sendMessage(singleTextMessage);
+        }
     }
 
     /*双击退出*/
