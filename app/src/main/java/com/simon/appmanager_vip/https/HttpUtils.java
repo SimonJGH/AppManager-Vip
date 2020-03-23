@@ -141,8 +141,8 @@ public class HttpUtils {
         }
         MultipartBody body = new MultipartBody(list, "UTF-8");
         params.setRequestBody(body);
-        params.setConnectTimeout(100000);
-        params.setReadTimeout(100000);
+        params.setConnectTimeout(300000);
+        params.setReadTimeout(300000);
 
         // 使用multipart表单上传文件
 //        params.setMultipart(true);

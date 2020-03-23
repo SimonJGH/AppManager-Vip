@@ -66,7 +66,7 @@ public class HomeActivity extends BaseActivity {
     private String apkName = "";//app名称
     private String apkType = "";//apk版本
     private boolean isExit = false;// 是否退出
-    private String apkPath = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/Pictures/";
+    private String apkPath = Environment.getExternalStorageDirectory().getAbsoluteFile() + "/Download/";
     private List<String> mFileNameList = new ArrayList<>();
     private String apkInfoUrl;//apk上传路径
     private LoadingDialog mLoadingDialog;
@@ -221,6 +221,14 @@ public class HomeActivity extends BaseActivity {
                 PopupWindowUtils.getInstance().closePop();
             }
         });
+        inflate.findViewById(R.id.tv_wmkt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                apkName = "wmkt_";
+                mTv_app_name.setText("维玛课堂");
+                PopupWindowUtils.getInstance().closePop();
+            }
+        });
         inflate.findViewById(R.id.tv_other).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -339,7 +347,10 @@ public class HomeActivity extends BaseActivity {
             @Override
             public void requestSuccess(String result) {
                 UpdateApkInfoOutputBean updateApkInfo = new Gson().fromJson(result, UpdateApkInfoOutputBean.class);
-                sendNotification();
+                try {
+                    sendNotification();
+                } catch (Exception e) {
+                }
 
                 apkInfo = "";
                 apkInfoUrl = "";
@@ -396,36 +407,39 @@ public class HomeActivity extends BaseActivity {
      * 发送通知
      */
     private void sendNotification() {
-        switch (apkName){
+        switch (apkName) {
             case "hq_":
-                apkName="红旗";
+                apkName = "红旗";
                 break;
             case "bty_":
-                apkName="奔腾苑";
+                apkName = "奔腾苑";
                 break;
             case "bty_teacher_":
-                apkName="奔腾苑-讲师端";
+                apkName = "奔腾苑-讲师端";
                 break;
             case "bty_manager_":
-                apkName="奔腾苑-管理端";
+                apkName = "奔腾苑-管理端";
                 break;
             case "wmhk_":
-                apkName="维玛荟客";
+                apkName = "维玛荟客";
+                break;
+            case "wmkt_":
+                apkName = "维玛课堂";
                 break;
             case "other_":
-                apkName="其它App";
+                apkName = "其它App";
                 break;
         }
 
-        switch (apkType){
+        switch (apkType) {
             case "publish":
-                apkType="正式版";
+                apkType = "正式版";
                 break;
             case "test":
-                apkType="测试版";
+                apkType = "测试版";
                 break;
             case "chat":
-                apkType="聊聊版";
+                apkType = "聊聊版";
                 break;
         }
         for (int i = 100; i <= 300; i++) {
